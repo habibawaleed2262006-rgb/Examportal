@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "6quxC3EAh44=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Habib\\Downloads\\ExamPortal-net10\\ExamPortal\\ExamPortal\\ExamPortal.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Habib\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.15\\microsoft.aspnetcore.app.internal.assets.10.0.15.nupkg.sha512",
+    "C:\\Users\\Habib\\.nuget\\packages\\mudblazor\\8.15.0\\mudblazor.8.15.0.nupkg.sha512"
+  ],
+  "logs": []
+}

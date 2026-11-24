@@ -1,0 +1,6 @@
+wwwroot\favicon.ico
+C:\Users\Habib\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.15\build\..\_framework\blazor.web.js
+C:\Users\Habib\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.15\build\..\_framework\blazor.server.js
+C:\Users\Habib\Downloads\ExamPortal-net10\ExamPortal\ExamPortal\wwwroot\favicon.ico
+C:\Users\Habib\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.15\_framework\blazor.web.js
+C:\Users\Habib\.nuget\packages\microsoft.aspnetcore.app.internal.assets\10.0.15\_framework\blazor.server.js

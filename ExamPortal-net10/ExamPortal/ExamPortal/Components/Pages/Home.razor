@@ -1,0 +1,20 @@
+@page "/"
+@inject AuthService Auth
+
+<PageTitle>Home</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Exam Portal</MudText>
+@if (Auth.IsLoggedIn)
+{
+    <MudText Class="mb-4">Hello, <b>@Auth.CurrentUser!.Username</b> (@Auth.CurrentUser.Role).</MudText>
+    <MudText>Use the menu on the left to continue.</MudText>
+}
+else
+{
+    <MudText Class="mb-4">Please login to start. The menu items you see depend on the account you log in with.</MudText>
+    <MudButton Href="login" Variant="Variant.Filled" Color="Color.Primary">Go to Login</MudButton>
+}
+
+@code {
+    protected override void OnInitialized() => Auth.OnChange += () => InvokeAsync(StateHasChanged);
+}

@@ -1,0 +1,38 @@
+@implements IDisposable
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+
+    @if (!Auth.IsLoggedIn)
+    {
+        <MudNavLink Href="login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
+    }
+    @if (Auth.IsAdmin)
+    {
+        <MudNavLink Href="admin" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">Admin</MudNavLink>
+    }
+    @if (Auth.IsStudent)
+    {
+        <MudNavLink Href="student" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.School">Student</MudNavLink>
+    }
+    @if (Auth.IsLoggedIn)
+    {
+        <MudNavLink Icon="@Icons.Material.Filled.Logout" OnClick="Logout">Logout (@Auth.CurrentUser!.Username)</MudNavLink>
+    }
+</MudNavMenu>
+
+@code {
+    protected override void OnInitialized() => Auth.OnChange += Changed;
+
+    private void Changed() => InvokeAsync(StateHasChanged);
+
+    private void Logout()
+    {
+        Auth.Logout();
+        Nav.NavigateTo("/login");
+    }
+
+    public void Dispose() => Auth.OnChange -= Changed;
+}

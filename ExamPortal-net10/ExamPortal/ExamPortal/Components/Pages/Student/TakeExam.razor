@@ -1,0 +1,121 @@
+@page "/student"
+@inject AuthService Auth
+@inject ExamService Exams
+@inject NavigationManager Nav
+
+<PageTitle>Student</PageTitle>
+
+@if (Auth.IsStudent)
+{
+    <MudText Typo="Typo.h4" GutterBottom="true">Student Exam</MudText>
+
+    @if (_course == null)
+    {
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">Choose a course to start the exam</MudText>
+            <MudSelect T="int" @bind-Value="_courseId" Label="Course" Variant="Variant.Outlined" Class="mb-3">
+                @foreach (var c in Exams.GetCourses())
+                {
+                    <MudSelectItem T="int" Value="@c.Id">@c.Name (@c.Questions.Count questions)</MudSelectItem>
+                }
+            </MudSelect>
+            @if (_message != null)
+            {
+                <MudAlert Severity="Severity.Warning" Class="mb-3">@_message</MudAlert>
+            }
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartExam">Start Exam</MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudText Typo="Typo.h5" GutterBottom="true">@_course.Name exam</MudText>
+
+        @for (int i = 0; i < _questions.Count; i++)
+        {
+            var q = _questions[i];
+            var number = i + 1;
+            <MudPaper Class="pa-4 mb-3">
+                <MudText Typo="Typo.h6">Q@(number): @q.Text</MudText>
+                <MudRadioGroup T="string" Value="@GetAnswer(q.Id)" ValueChanged="@((string v) => SetAnswer(q.Id, v))" ReadOnly="@_submitted">
+                    @foreach (var choice in q.Choices)
+                    {
+                        <MudRadio T="string" Value="@choice">@choice</MudRadio>
+                    }
+                </MudRadioGroup>
+
+                @if (_submitted)
+                {
+                    var mine = GetAnswer(q.Id);
+                    if (mine == q.CorrectAnswer)
+                    {
+                        <MudAlert Severity="Severity.Success" Class="mt-2">Correct. Answer: @q.CorrectAnswer</MudAlert>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Error" Class="mt-2">
+                            Wrong. Your answer: @(mine ?? "none"). Correct answer: @q.CorrectAnswer
+                        </MudAlert>
+                    }
+                }
+            </MudPaper>
+        }
+
+        @if (!_submitted)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Submit Exam</MudButton>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info" Class="mb-3">Your score: @_score / @_questions.Count</MudAlert>
+            <MudButton Variant="Variant.Outlined" OnClick="Reset">Back to courses</MudButton>
+        }
+    }
+}
+else
+{
+    <MudAlert Severity="Severity.Warning">Students only. Please login as student.</MudAlert>
+}
+
+@code {
+    private int _courseId;
+    private Course? _course;
+    private List<Question> _questions = new();
+    private readonly Dictionary<int, string> _answers = new();
+    private bool _submitted;
+    private int _score;
+    private string? _message;
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsStudent) { Nav.NavigateTo("/login"); return; }
+        _courseId = Exams.GetCourses().FirstOrDefault()?.Id ?? 0;
+    }
+
+    private string? GetAnswer(int qid) => _answers.TryGetValue(qid, out var a) ? a : null;
+
+    private void SetAnswer(int qid, string value) => _answers[qid] = value;
+
+    private void StartExam()
+    {
+        var c = Exams.GetCourse(_courseId);
+        if (c == null) { _message = "Please choose a course."; return; }
+        if (c.Questions.Count == 0) { _message = "This course has no questions yet. Ask the admin to add some."; return; }
+        _message = null;
+        _course = c;
+        _questions = c.Questions.ToList(); // snapshot
+        _answers.Clear();
+        _submitted = false;
+    }
+
+    private void Submit()
+    {
+        _score = _questions.Count(q => GetAnswer(q.Id) == q.CorrectAnswer);
+        _submitted = true;
+    }
+
+    private void Reset()
+    {
+        _course = null;
+        _submitted = false;
+    }
+}

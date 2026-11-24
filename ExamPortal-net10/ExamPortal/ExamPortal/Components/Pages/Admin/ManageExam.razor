@@ -1,0 +1,104 @@
+@page "/admin"
+@inject AuthService Auth
+@inject ExamService Exams
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>Admin</PageTitle>
+
+@if (Auth.IsAdmin)
+{
+    <MudText Typo="Typo.h4" GutterBottom="true">Admin Panel</MudText>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" GutterBottom="true">1) Add Course</MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            <MudTextField @bind-Value="_courseName" Label="Course name (e.g. C#)" Variant="Variant.Outlined" Immediate="true" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddCourse">Add Course</MudButton>
+        </MudStack>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" GutterBottom="true">2) Add Question for Course</MudText>
+        <MudSelect T="int" @bind-Value="_courseId" Label="Course" Variant="Variant.Outlined" Class="mb-3">
+            @foreach (var c in Exams.GetCourses())
+            {
+                <MudSelectItem T="int" Value="@c.Id">@c.Name (@c.Questions.Count questions)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudTextField @bind-Value="_questionText" Label="Question (true / false statement)" Variant="Variant.Outlined"
+                      Class="mb-3" Immediate="true" />
+
+        <MudText Typo="Typo.subtitle1">3) Choices and correct answer</MudText>
+        <MudRadioGroup T="string" @bind-Value="_correct">
+            <MudRadio T="string" Value="@("True")">True</MudRadio>
+            <MudRadio T="string" Value="@("False")">False</MudRadio>
+        </MudRadioGroup>
+        <div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddQuestion" Class="mt-2">Add Question</MudButton>
+        </div>
+    </MudPaper>
+
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h6" GutterBottom="true">Questions in selected course</MudText>
+        @{ var course = Exams.GetCourse(_courseId); }
+        @if (course == null || course.Questions.Count == 0)
+        {
+            <MudText>No questions yet.</MudText>
+        }
+        else
+        {
+            <MudList T="string">
+                @for (int i = 0; i < course.Questions.Count; i++)
+                {
+                    var q = course.Questions[i];
+                    var number = i + 1;
+                    <MudListItem T="string">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <MudText>Q@(number): @q.Text <b>(Answer: @q.CorrectAnswer)</b></MudText>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                                           OnClick="@(() => DeleteQuestion(q.Id))" />
+                        </MudStack>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+    </MudPaper>
+}
+else
+{
+    <MudAlert Severity="Severity.Warning">Admins only. Please login as admin.</MudAlert>
+}
+
+@code {
+    private string _courseName = "";
+    private int _courseId;
+    private string _questionText = "";
+    private string _correct = "True";
+
+    protected override void OnInitialized()
+    {
+        if (!Auth.IsAdmin) { Nav.NavigateTo("/login"); return; }
+        _courseId = Exams.GetCourses().FirstOrDefault()?.Id ?? 0;
+    }
+
+    private void AddCourse()
+    {
+        if (string.IsNullOrWhiteSpace(_courseName)) { Snackbar.Add("Type a course name first.", Severity.Warning); return; }
+        var c = Exams.AddCourse(_courseName);
+        _courseId = c.Id;
+        _courseName = "";
+        Snackbar.Add("Course added.", Severity.Success);
+    }
+
+    private void AddQuestion()
+    {
+        if (_courseId == 0) { Snackbar.Add("Add or select a course first.", Severity.Warning); return; }
+        if (string.IsNullOrWhiteSpace(_questionText)) { Snackbar.Add("Type the question first.", Severity.Warning); return; }
+        Exams.AddQuestion(_courseId, _questionText, _correct);
+        _questionText = "";
+        Snackbar.Add("Question added.", Severity.Success);
+    }
+
+    private void DeleteQuestion(int id) => Exams.DeleteQuestion(_courseId, id);
+}

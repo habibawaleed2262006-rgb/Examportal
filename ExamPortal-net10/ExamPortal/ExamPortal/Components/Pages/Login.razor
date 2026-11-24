@@ -1,0 +1,46 @@
+@page "/login"
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<PageTitle>Login</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" GutterBottom="true">Login</MudText>
+        <MudTextField @bind-Value="_username" Label="Username" Variant="Variant.Outlined" Class="mb-3" Immediate="true" />
+        <MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password"
+                      Variant="Variant.Outlined" Class="mb-3" Immediate="true" />
+        @if (_error != null)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-3">@_error</MudAlert>
+        }
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="DoLogin">Login</MudButton>
+
+        <MudDivider Class="my-4" />
+        <MudText Typo="Typo.caption">Demo accounts: admin / admin123 &nbsp;|&nbsp; student / student123</MudText>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string _username = "";
+    private string _password = "";
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        if (Auth.IsLoggedIn) GoToRolePage();
+    }
+
+    private void DoLogin()
+    {
+        if (Auth.Login(_username, _password))
+            GoToRolePage();
+        else
+            _error = "Wrong username or password.";
+    }
+
+    private void GoToRolePage()
+    {
+        Nav.NavigateTo(Auth.IsAdmin ? "/admin" : "/student");
+    }
+}
